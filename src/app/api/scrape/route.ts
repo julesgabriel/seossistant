@@ -1,5 +1,7 @@
-import {launch} from "puppeteer";
+export const dynamic = 'force-dynamic'; // static by default, unless reading the request
 
+
+import {launch} from "puppeteer";
 export function GET() {
     return Response.json({message: 'Hello from Next.js!'})
 }
