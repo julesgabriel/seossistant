@@ -5,8 +5,30 @@ import Link from "next/link";
 const ScrapePage = () => {
     const [keyword, setKeyword] = useState('');
     const [result, setResult] = useState({
-        response: [],
-        peopleAlsoAskQuestions: [],
+        response: [
+            "lien 1",
+            "lien 2",
+            "lien 3",
+            "lien 4",
+            "lien 5",
+            "lien 6",
+            "lien 7",
+            "lien 8",
+            "lien 9",
+            "lien 10",
+        ],
+        peopleAlsoAskQuestions: [
+            "questions 1",
+            "questions 2",
+            "questions 3",
+            "questions 4",
+            "questions 5",
+            "questions 6",
+            "questions 7",
+            "questions 8",
+            "questions 9",
+            "questions 10",
+        ],
         keywordsForOptimizedMeshing: [
             "mot clé 1",
             "mot clé 2",
@@ -45,8 +67,8 @@ const ScrapePage = () => {
             const data = await response.json();
             setResult((prevState) => ({
                 ...prevState,
-                response: data.response,
-                peopleAlsoAskQuestions: data.peopleAlsoAskQuestions
+                response: data.response.filter((item: any) => item !== null),
+                peopleAlsoAskQuestions: data.peopleAlsoAskQuestions ? data.peopleAlsoAskQuestions : [],
             }));
         } catch (error) {
             console.error('Error:', error);
@@ -80,20 +102,20 @@ const ScrapePage = () => {
                 <li className={`step ${step > 2 ? 'step-primary' : ''}`}>Récapitulatif et export</li>
             </ul>
 
-            <div className="mt-4 p-4 flex flex-wrap gap-y-4 w-11/12 mx-auto ">
+            <div className="mt-4 p-4 flex flex-wrap gap-y-4 w-11/12 mx-auto">
                 {step < 1 && (
-                    <div className="w-full lg:w-2/5 fixed">
+                    <div className="w-full lg:w-2/5 lg:sticky top-0">
                         <h2 className="text-3xl font-bold mb-6">Choix du mot clé initial</h2>
-                        <div>
+                        <div className="flex flex-wrap">
                             <input
-                                className="input w-2/3 mr-6 input-bordered mb-2"
+                                className="input w-full lg:w-2/3 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
                                 onChange={(e) => setKeyword(e.target.value)}
                                 placeholder="Enter keyword"
                                 type="text"
                                 value={keyword}
                             />
                             <button
-                                className={`btn ${loading ? 'btn-disabled' : 'btn-primary'}`}
+                                className={`btn w-full lg:w-auto ${loading ? 'btn-disabled' : 'btn-primary'}`}
                                 disabled={loading}
                                 onClick={handleScrape}
                             >
@@ -104,14 +126,14 @@ const ScrapePage = () => {
                 )}
 
                 {step === 1 && (
-                    <div className="w-full lg:w-2/5 fixed">
+                    <div className="w-full lg:w-2/5 lg:sticky top-0">
                         <h2 className="text-3xl font-bold mb-6">Champs sémantique</h2>
                         <div className="label">
                             <span className="label-text-alt">Uploadez votre document pour optimiser le maillage</span>
                         </div>
                         <input
                             type="file"
-                            className="file-input file-input-bordered file-input-primary w-full max-w-xs"
+                            className="file-input file-input-bordered file-input-primary w-full"
                             onChange={handleUpload}
                         />
                     </div>
@@ -177,7 +199,7 @@ const ScrapePage = () => {
                                 </ul>
                             </div>
 
-                            <button className="btn w-1/3 btn-primary">
+                            <button className="btn w-full lg:w-1/3 btn-primary">
                                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                                      className="w-6 h-6">
                                     <path
