@@ -4,6 +4,8 @@ import Link from "next/link";
 
 const ScrapePage = () => {
     const [keyword, setKeyword] = useState('');
+    const [keywords, setKeywords] = useState('');
+    const [websiteUrl, setWebsiteUrl] = useState('');
     const [result, setResult] = useState({
         response: [
             "lien 1",
@@ -29,18 +31,6 @@ const ScrapePage = () => {
             "questions 9",
             "questions 10",
         ],
-        keywordsForOptimizedMeshing: [
-            "mot clé 1",
-            "mot clé 2",
-            "mot clé 3",
-            "mot clé 4",
-            "mot clé 5",
-            "mot clé 6",
-            "mot clé 7",
-            "mot clé 8",
-            "mot clé 9",
-            "mot clé 10",
-        ],
         maillage: [
             "site:example.com",
             "site:example.com",
@@ -62,50 +52,35 @@ const ScrapePage = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({searchValue: keyword}),
+                body: JSON.stringify({
+                    searchValue: keyword,
+                    keywords: keywords.split(','),
+                    websiteUrl: websiteUrl
+                }),
             });
             const data = await response.json();
             setResult((prevState) => ({
                 ...prevState,
-                response: data.response.filter((item: any) => item !== null),
+                response: data.response,
                 peopleAlsoAskQuestions: data.peopleAlsoAskQuestions ? data.peopleAlsoAskQuestions : [],
+                maillage: data.computedSiteMap
             }));
         } catch (error) {
             console.error('Error:', error);
         } finally {
-            setLoading(false);
             setStep(1);
-        }
-    };
-
-    const handleUpload = async () => {
-        setLoading(true);
-        try {
-            console.log('Uploading file');
-        } catch (error) {
-            console.error('Error:', error);
-        } finally {
-            setStep(2);
-            setTimeout(() => {
-                setStep(3);
-                setLoading(false);
-            }, 6000);
+            setLoading(false);
         }
     };
 
     return (
         <div className="py-12">
-            <ul className="steps w-full">
-                <li className="step step-primary">Choix du mot clé initial</li>
-                <li className={`step ${step > 0 ? 'step-primary' : ''}`}>Upload de votre champs sémantique</li>
-                <li className={`step ${step > 1 ? 'step-primary' : ''}`}>Génération du maillage</li>
-                <li className={`step ${step > 2 ? 'step-primary' : ''}`}>Récapitulatif et export</li>
-            </ul>
+
 
             <div className="mt-4 p-4 flex flex-wrap gap-y-4 w-11/12 mx-auto">
                 {step < 1 && (
                     <div className="w-full lg:w-2/5 lg:sticky top-0">
-                        <h2 className="text-3xl font-bold mb-6">Choix du mot clé initial</h2>
+                        <h2 className="text-3xl font-bold mb-6">Génération du brief</h2>
                         <div className="flex flex-wrap">
                             <input
                                 className="input w-full lg:w-2/3 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
@@ -114,35 +89,30 @@ const ScrapePage = () => {
                                 type="text"
                                 value={keyword}
                             />
+
+                            <input
+                                className="input w-full lg:w-2/3 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
+                                onChange={(e) => setWebsiteUrl(e.target.value)}
+                                placeholder="Entrez l'url de votre site"
+                                type="text"
+                                value={websiteUrl}
+                            />
+                            <input
+                                className="input w-full lg:w-2/3 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
+                                onChange={(e) => setKeywords(e.target.value)}
+                                placeholder="Entrez vos mots clés séparer par une virgule"
+                                type="text"
+                                value={keywords}
+                            />
+
                             <button
                                 className={`btn w-full lg:w-auto ${loading ? 'btn-disabled' : 'btn-primary'}`}
                                 disabled={loading}
                                 onClick={handleScrape}
                             >
-                                {loading ? 'Scraping...' : 'Scrape'}
+                                {loading ? 'Merci de patienter...' : 'Lancer la génération du brief'}
                             </button>
                         </div>
-                    </div>
-                )}
-
-                {step === 1 && (
-                    <div className="w-full lg:w-2/5 lg:sticky top-0">
-                        <h2 className="text-3xl font-bold mb-6">Champs sémantique</h2>
-                        <div className="label">
-                            <span className="label-text-alt">Uploadez votre document pour optimiser le maillage</span>
-                        </div>
-                        <input
-                            type="file"
-                            className="file-input file-input-bordered file-input-primary w-full"
-                            onChange={handleUpload}
-                        />
-                    </div>
-                )}
-
-                {step === 2 && (
-                    <div className="w-full lg:w-2/5 flex flex-col justify-center items-center">
-                        <h2 className="text-lg font-medium mb-6">Génération du maillage le plus optimisé</h2>
-                        <span className="loading loading-spinner loading-lg"></span>
                     </div>
                 )}
 
@@ -182,18 +152,7 @@ const ScrapePage = () => {
                                 <ul className="list-disc pl-5 space-y-3">
                                     {result.maillage.map((item: string, index: number) => (
                                         <li key={index}>
-                                            {item}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-
-                            <div className="mb-6">
-                                <h2 className="text-2xl font-semibold mb-2">Mots clés</h2>
-                                <ul className="list-disc pl-5 space-y-3">
-                                    {result.keywordsForOptimizedMeshing.map((item: string, index: number) => (
-                                        <li key={index}>
-                                            {item}
+                                            {item.keyword}: {item.url}
                                         </li>
                                     ))}
                                 </ul>
