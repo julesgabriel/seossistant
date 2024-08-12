@@ -1,16 +1,16 @@
 import chromium from '@sparticuz/chromium'
 import {Contracts, mistralService, scrapingService, usecase} from "./usecase";
 
-const CHROMIUM_PATH = process.env.CHROMIUM_PATH
 
 async function getBrowser() {
     // Configure Chromium with the URL
     // Get the executable path
     if (process.env.NODE_ENV === 'production') {
         const puppeteer = await import('puppeteer-core');
+
         let launchOptions = {
             headless: true,
-            executablePath: await chromium.executablePath(CHROMIUM_PATH),
+            executablePath: await chromium.executablePath(process.env.CHROMIUM_PATH),
             args: chromium.args,
         };
         return await puppeteer.launch(launchOptions)
@@ -41,20 +41,28 @@ export type Response = {
     computedSiteMap: AiAnswer | null
 }
 
+export const maxDuration = 30
 export async function POST(req: Request): Promise<any> {
     try {
         const jsonReq: Command = await req.json();
         const searchValue = jsonReq.searchValue;
         const keywords = jsonReq.keywords;
-        const websiteUrl = jsonReq.websiteUrl || 'iroko.eu';
+        const websiteUrl = jsonReq.websiteUrl;
 
         const browser = await getBrowser();
+
+        const services: Contracts = {
+            aiService: mistralService,
+            scrapingService: scrapingService(browser)
+        };
+
         const page = await browser.newPage();
 
         const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchValue)}`;
         await page.goto(searchUrl, {waitUntil: 'domcontentloaded'});
 
-        const response = await page.evaluate<any>(() => {
+        // @ts-ignore
+        const response = await page.evaluate(() => {
             const results = Array.from(document.querySelectorAll('#search .g'));
             return results.map(result => {
                 const linkElement = result.querySelector('a');
@@ -63,19 +71,15 @@ export async function POST(req: Request): Promise<any> {
         });
 
         // Scrape the "People also ask" questions
-        const peopleAlsoAskQuestions = await page.evaluate<any>(() => {
+        // @ts-ignore
+        const peopleAlsoAskQuestions = await page.evaluate(() => {
             const questions = Array.from(document.querySelectorAll('div.related-question-pair span'));
             return questions.map(question => question.textContent).filter((item, pos, self) => {
                 return self.indexOf(item) === pos;
             });
         });
 
-        await browser.close();
 
-        const services: Contracts = {
-            aiService: mistralService,
-            scrapingService: scrapingService
-        };
         const resultUsecase = await usecase(keywords, websiteUrl, services);
         let result: Response = {
             response,
@@ -83,10 +87,10 @@ export async function POST(req: Request): Promise<any> {
             computedSiteMap: null
         }
         if (resultUsecase.choices) {
-            console.log(resultUsecase.choices[0].message?.content)
             result.computedSiteMap = (JSON.parse(<string>resultUsecase.choices[0].message?.content)) as AiAnswer;
         }
-        return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        await browser.close();
+        return new Response(JSON.stringify(result), {status: 200, headers: {'Content-Type': 'application/json'}});
     } catch (error) {
         console.error('Error during POST request:', error);
         return new Response(JSON.stringify({error: 'An error occurred while scraping Google search results'}), {status: 500});

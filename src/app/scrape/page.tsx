@@ -6,7 +6,11 @@ const ScrapePage = () => {
     const [keyword, setKeyword] = useState('');
     const [keywords, setKeywords] = useState('');
     const [websiteUrl, setWebsiteUrl] = useState('');
-    const [result, setResult] = useState({
+    const [result, setResult] = useState<{
+        response: string[],
+        peopleAlsoAskQuestions: string[],
+        maillage: { keyword: string, url: string }[]
+    }>({
         response: [
             "lien 1",
             "lien 2",
@@ -32,17 +36,21 @@ const ScrapePage = () => {
             "questions 10",
         ],
         maillage: [
-            "site:example.com",
-            "site:example.com",
-            "site:example.com",
-            "site:example.com",
-            "site:example.com",
-            "site:example.com",
+            {keyword: "keyword 1", url: "url 1"},
+            {keyword: "keyword 2", url: "url 2"},
+            {keyword: "keyword 3", url: "url 3"},
+            {keyword: "keyword 4", url: "url 4"},
+            {keyword: "keyword 5", url: "url 5"},
+            {keyword: "keyword 6", url: "url 6"},
+            {keyword: "keyword 7", url: "url 7"},
+            {keyword: "keyword 8", url: "url 8"},
+            {keyword: "keyword 9", url: "url 9"},
+            {keyword: "keyword 10", url: "url 10"},
         ]
     });
     const [loading, setLoading] = useState(false);
 
-    const [step, setStep] = useState(0);
+    const [isFinished, setIsFinished] = useState(false);
 
     const handleScrape = async () => {
         setLoading(true);
@@ -68,56 +76,51 @@ const ScrapePage = () => {
         } catch (error) {
             console.error('Error:', error);
         } finally {
-            setStep(1);
+            setIsFinished(true);
             setLoading(false);
         }
     };
 
     return (
         <div className="py-12">
+            <div className="mt-4 p-4 flex gap-y-4 w-11/12 mx-auto">
+                <div className="w-1/2 top-0">
+                    <h2 className="text-3xl font-bold mb-6">Génération du brief</h2>
+                    <div className="flex flex-col gap-y-3">
+                        <input
+                            className="input w-full lg:w-3/5 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
+                            onChange={(e) => setKeyword(e.target.value)}
+                            placeholder="Enter keyword"
+                            type="text"
+                            value={keyword}
+                        />
 
+                        <input
+                            className="input w-full lg:w-3/5 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
+                            onChange={(e) => setWebsiteUrl(e.target.value)}
+                            placeholder="Entrez l'url de votre site"
+                            type="text"
+                            value={websiteUrl}
+                        />
+                        <textarea
+                            className="input w-full lg:w-3/5 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
+                            onChange={(e) => setKeywords(e.target.value)}
+                            placeholder="Entrez vos mots clés séparer par une virgule"
+                            value={keywords}
+                        />
 
-            <div className="mt-4 p-4 flex flex-wrap gap-y-4 w-11/12 mx-auto">
-                {step < 1 && (
-                    <div className="w-full lg:w-2/5 lg:sticky top-0">
-                        <h2 className="text-3xl font-bold mb-6">Génération du brief</h2>
-                        <div className="flex flex-wrap">
-                            <input
-                                className="input w-full lg:w-2/3 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
-                                onChange={(e) => setKeyword(e.target.value)}
-                                placeholder="Enter keyword"
-                                type="text"
-                                value={keyword}
-                            />
-
-                            <input
-                                className="input w-full lg:w-2/3 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
-                                onChange={(e) => setWebsiteUrl(e.target.value)}
-                                placeholder="Entrez l'url de votre site"
-                                type="text"
-                                value={websiteUrl}
-                            />
-                            <input
-                                className="input w-full lg:w-2/3 mr-0 lg:mr-6 input-bordered mb-2 lg:mb-0"
-                                onChange={(e) => setKeywords(e.target.value)}
-                                placeholder="Entrez vos mots clés séparer par une virgule"
-                                type="text"
-                                value={keywords}
-                            />
-
-                            <button
-                                className={`btn w-full lg:w-auto ${loading ? 'btn-disabled' : 'btn-primary'}`}
-                                disabled={loading}
-                                onClick={handleScrape}
-                            >
-                                {loading ? 'Merci de patienter...' : 'Lancer la génération du brief'}
-                            </button>
-                        </div>
+                        <button
+                            className={`btn w-full lg:w-3/5 ${loading ? 'btn-disabled' : 'btn-primary'}`}
+                            disabled={loading}
+                            onClick={handleScrape}
+                        >
+                            {loading ? 'Merci de patienter...' : 'Lancer la génération du brief'}
+                        </button>
                     </div>
-                )}
+                </div>
 
-                <div className={`flex flex-col gap-y-8 ml-auto ${step === 3 ? 'w-full' : 'w-full lg:w-3/5'}`}>
-                    {step > 0 && (
+                <div className={`w-1/2 flex flex-col gap-y-8 ml-auto`}>
+                    {isFinished && (
                         <>
                             <div className="flex flex-col gap-y-4">
                                 <h2 className="text-3xl font-semibold mb-2">Résultats</h2>
@@ -150,7 +153,7 @@ const ScrapePage = () => {
                             <div className="mb-6">
                                 <h2 className="text-2xl font-semibold mb-2">Maillage le plus optimisé</h2>
                                 <ul className="list-disc pl-5 space-y-3">
-                                    {result.maillage.map((item: string, index: number) => (
+                                    {result.maillage.map((item, index: number) => (
                                         <li key={index}>
                                             {item.keyword}: {item.url}
                                         </li>

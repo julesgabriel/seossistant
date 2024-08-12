@@ -1,19 +1,19 @@
 import {Mistral} from "@mistralai/mistralai";
 import {ChatCompletionResponse} from "@mistralai/mistralai/models/components";
-import puppeteer from "puppeteer";
 
 export interface Scraping {
     scrapSiteMap(keywords: string[], websiteBaseUrl: string): Promise<string[]>;
 }
 
-export const scrapingService: Scraping = {
+// @ts-ignore
+export const scrapingService = (browser): Scraping => ({
     async scrapSiteMap(keywords: string[], websiteBaseUrl: string): Promise<string[]> {
-        const browser = await puppeteer.launch();
         const page = await browser.newPage();
         const url = `${websiteBaseUrl}/sitemap.xml`;
         await page.goto(url);
 
-        return await page.evaluate<any>(() => {
+        // @ts-ignore
+        return await page.evaluate(() => {
             const sitemapElement = document.querySelector('pre');
             if (!sitemapElement) return []; // Return an empty array if the <pre> element is not found
 
@@ -27,7 +27,7 @@ export const scrapingService: Scraping = {
             return urls.filter(url => url.includes('blog/') || url.includes('article/') || url.includes('articles/') || url.includes('resources/') || url.includes('ressources/'));
         });
     }
-}
+});
 
 export interface AIService {
     findUrlsBasedOnKeywordsProvided(keywords: string[], sitemap: string[]): Promise<ChatCompletionResponse>;
@@ -37,18 +37,19 @@ export const mistralService: AIService = {
     async findUrlsBasedOnKeywordsProvided(keywords: string[], sitemap: string[]): Promise<ChatCompletionResponse> {
         const apiKey = process.env.MISTRAL_API_KEY;
         const agentId = process.env.MISTAL_SITEMAP_AGENT_ID;
-        const client = new Mistral({apiKey: apiKey});
-        return await client.agents.complete({
-            agentId,
-            messages: [{role: 'user', content: JSON.stringify({keywords, sitemap})}]
-        });
+
+        if (!apiKey || !agentId) throw new Error('Mistral API Key or Agent ID is missing');
+        else {
+            const client = new Mistral({apiKey: apiKey});
+            return await client.agents.complete({
+                agentId,
+                messages: [{role: 'user', content: JSON.stringify({keywords, sitemap})}]
+            });
+        }
     }
 };
 
-export type Contracts = {
-    scrapingService: Scraping,
-    aiService: AIService
-}
+export type Contracts = { aiService: AIService; scrapingService: Scraping }
 
 export async function usecase(keywords: string[], websiteBaseUrl: string, {
     scrapingService,
