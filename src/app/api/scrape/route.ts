@@ -11,7 +11,8 @@ async function getBrowser() {
         let launchOptions = {
             headless: true,
             executablePath: await chromium.executablePath(process.env.CHROMIUM_PATH),
-            args: chromium.args,
+            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+            dumpio: true
         };
         return await puppeteer.launch(launchOptions)
     } else {
@@ -41,7 +42,7 @@ export type Response = {
     computedSiteMap: AiAnswer | null
 }
 
-export const maxDuration = 30
+export const maxDuration = 300
 export async function POST(req: Request): Promise<any> {
     try {
         const jsonReq: Command = await req.json();
@@ -81,6 +82,9 @@ export async function POST(req: Request): Promise<any> {
 
 
         const resultUsecase = await usecase(keywords, websiteUrl, services);
+        if (resultUsecase.choices) {
+            console.log('RESULT', resultUsecase.choices[0].message?.content);
+        }
         let result: Response = {
             response,
             peopleAlsoAskQuestions,
