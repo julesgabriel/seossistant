@@ -1,5 +1,7 @@
 import chromium from '@sparticuz/chromium'
-import {Contracts, mistralService, scrapingService, usecase} from "./usecase";
+import {Contracts, usecase} from "./usecase";
+import {mistralService} from "@/app/backend/contracts/ai";
+import {scrapingService} from "@/app/backend/contracts/scraping";
 
 
 async function getBrowser() {
@@ -28,7 +30,7 @@ export function GET() {
 export type Command = {
     searchValue: string,
     keywords: string[],
-    websiteUrl: string
+    sitemapUrl: string
 }
 
 export type AiAnswer = {
@@ -37,66 +39,31 @@ export type AiAnswer = {
 }
 
 export type Response = {
-    response: string[],
+    answersGoogleSearch: string[],
     peopleAlsoAskQuestions: string[],
     computedSiteMap: AiAnswer | null
 }
 
 export const maxDuration = 300
+
 export async function POST(req: Request): Promise<any> {
-    try {
-        const jsonReq: Command = await req.json();
-        const searchValue = jsonReq.searchValue;
-        const keywords = jsonReq.keywords;
-        const websiteUrl = jsonReq.websiteUrl;
-
-        const browser = await getBrowser();
-
-        const services: Contracts = {
-            aiService: mistralService,
-            scrapingService: scrapingService(browser)
-        };
-
-        const page = await browser.newPage();
-
-        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchValue)}`;
-        await page.goto(searchUrl, {waitUntil: 'domcontentloaded'});
-
-        // @ts-ignore
-        const response = await page.evaluate(() => {
-            const results = Array.from(document.querySelectorAll('#search .g'));
-            return results.map(result => {
-                const linkElement = result.querySelector('a');
-                return linkElement ? linkElement.href : null;
-            });
-        });
-
-        // Scrape the "People also ask" questions
-        // @ts-ignore
-        const peopleAlsoAskQuestions = await page.evaluate(() => {
-            const questions = Array.from(document.querySelectorAll('div.related-question-pair span'));
-            return questions.map(question => question.textContent).filter((item, pos, self) => {
-                return self.indexOf(item) === pos;
-            });
-        });
+    const jsonReq: Command = await req.json();
+    const searchValue = jsonReq.searchValue;
+    const keywords = jsonReq.keywords;
+    let sitemapUrl = jsonReq.sitemapUrl;
+    const browser = await getBrowser();
+    const services: Contracts = {
+        aiService: mistralService,
+        scrapingService: scrapingService(browser)
+    };
 
 
-        const resultUsecase = await usecase(keywords, websiteUrl, services);
-        if (resultUsecase.choices) {
-            console.log('RESULT', resultUsecase.choices[0].message?.content);
-        }
-        let result: Response = {
-            response,
-            peopleAlsoAskQuestions,
-            computedSiteMap: null
-        }
-        if (resultUsecase.choices) {
-            result.computedSiteMap = (JSON.parse(<string>resultUsecase.choices[0].message?.content)) as AiAnswer;
-        }
-        await browser.close();
-        return new Response(JSON.stringify(result), {status: 200, headers: {'Content-Type': 'application/json'}});
-    } catch (error) {
-        console.error('Error during POST request:', error);
-        return new Response(JSON.stringify({error: 'An error occurred while scraping Google search results'}), {status: 500});
-    }
+    const usecaseResult = await usecase(searchValue, keywords, sitemapUrl, services)
+    await browser.close()
+    return new Response(JSON.stringify(usecaseResult), {
+        status: 200,
+        headers: {'Content-Type': 'application/json'}
+    });
+
 }
+
