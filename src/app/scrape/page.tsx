@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import {useState} from "react";
 import Link from "next/link";
-import { SiteMapsOutput } from "@/app/api/sitemaps/route";
+import {SiteMapsOutput} from "@/app/api/sitemaps/route";
 
 const ScrapePage = () => {
-    const [keyword, setKeyword] = useState("");
+    const [searchedValue, setSearchedValue] = useState("");
     const [keywords, setKeywords] = useState("");
     const [websiteUrl, setWebsiteUrl] = useState("");
     const [result, setResult] = useState({
@@ -52,8 +52,8 @@ const ScrapePage = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    searchValue: keyword,
-                    keywords: keywords.split(","),
+                    searchValue: searchedValue,
+                    keywords: [...keywords.split(","), searchedValue],
                     sitemapUrl: selectedSitemap,
                 }),
             });
@@ -83,10 +83,10 @@ const ScrapePage = () => {
                         <input
                             id="keyword"
                             className="input w-full lg:w-3/5 input-bordered"
-                            onChange={(e) => setKeyword(e.target.value)}
+                            onChange={(e) => setSearchedValue(e.target.value)}
                             placeholder="Entrez le mot clé"
                             type="text"
-                            value={keyword}
+                            value={searchedValue}
                         />
                     </div>
 
@@ -112,9 +112,11 @@ const ScrapePage = () => {
                                 Choisissez votre sitemap
                             </label>
                             <p className="text-sm text-gray-500 mb-2">
-                                Nous avons trouvé plusieurs sitemaps. Veuillez en sélectionner un pour des résultats optimisés.
+                                Nous avons trouvé plusieurs sitemaps. Veuillez en sélectionner un pour des résultats
+                                optimisés.
                             </p>
-                            <select id="sitemap" className="input w-full lg:w-3/5 input-bordered" onChange={(e) => setSelectedSitemap(e.target.value)}>
+                            <select id="sitemap" className="input w-full lg:w-3/5 input-bordered"
+                                    onChange={(e) => setSelectedSitemap(e.target.value)}>
                                 {sitemaps.sitemap.map((item, index) => (
                                     <option key={index} value={item}>
                                         {item}
@@ -154,8 +156,8 @@ const ScrapePage = () => {
 
                         <div className="mb-6">
                             <h3 className="text-2xl font-semibold mb-2">
-                                Recherches les plus fréquentes pour le mot clé{" "}
-                                <span className="text-primary">{keyword}</span>
+                                Résultats de la SERP pour le mot-clé{" "}
+                                <span className="text-primary">{searchedValue}</span>
                             </h3>
                             <ul className="list-decimal pl-5 space-y-2">
                                 {result.response.map((item: string, index: number) => (

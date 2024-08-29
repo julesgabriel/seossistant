@@ -1,8 +1,7 @@
 import chromium from '@sparticuz/chromium'
 import {Contracts, usecase} from "./usecase";
-import {mistralService} from "@/app/backend/contracts/ai";
 import {scrapingService} from "@/app/backend/contracts/scraping";
-
+import {openAIService} from "@/app/backend/contracts/ai";
 
 async function getBrowser() {
     // Configure Chromium with the URL
@@ -53,7 +52,7 @@ export async function POST(req: Request): Promise<any> {
     let sitemapUrl = jsonReq.sitemapUrl;
     const browser = await getBrowser();
     const services: Contracts = {
-        aiService: mistralService,
+        aiService: openAIService,
         scrapingService: scrapingService(browser)
     };
 
