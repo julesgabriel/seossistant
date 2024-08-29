@@ -2,6 +2,7 @@
 import {useState} from "react";
 import Link from "next/link";
 import {SiteMapsOutput} from "@/app/api/sitemaps/route";
+import {HnAndMetaStructure} from "@/app/backend/contracts/ai";
 
 const ScrapePage = () => {
     const [searchedValue, setSearchedValue] = useState("");
@@ -10,7 +11,8 @@ const ScrapePage = () => {
     const [result, setResult] = useState({
         response: [],
         peopleAlsoAskQuestions: [],
-        maillage: []
+        maillage: [],
+        hnStructure: {} as HnAndMetaStructure
     });
     const [loading, setLoading] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
@@ -53,7 +55,7 @@ const ScrapePage = () => {
                 },
                 body: JSON.stringify({
                     searchValue: searchedValue,
-                    keywords: [...keywords.split(","), searchedValue],
+                    keywords: [searchedValue, ...keywords.split(",") ],
                     sitemapUrl: selectedSitemap,
                 }),
             });
@@ -62,6 +64,7 @@ const ScrapePage = () => {
                 response: data.answersGoogleSearch.answers || [],
                 peopleAlsoAskQuestions: data.answersGoogleSearch.questions || [],
                 maillage: data.aiAnswer || [],
+                hnStructure: data.hnStructure as HnAndMetaStructure
             });
         } catch (error) {
             console.error("Error:", error);
@@ -193,6 +196,52 @@ const ScrapePage = () => {
                             </ul>
                         </div>
 
+                        {isFinished && (
+                            <div className="mt-8">
+                                <h2 className="text-3xl font-semibold mb-4 text-gray-800">Hn Structure et meta</h2>
+
+                                {/* Display the Title and Meta Description */}
+                                {result.hnStructure && (
+                                    <div className="mb-6">
+                                        <h3 className="text-2xl font-semibold mb-2">Title Optimisé</h3>
+                                        <p>{result.hnStructure.title}</p>
+
+                                        <h3 className="text-2xl font-semibold mb-2 mt-4">Meta Description</h3>
+                                        <p>{result.hnStructure.meta_description}</p>
+                                    </div>
+                                )}
+
+                                {/* Display the H1 and structured sections */}
+                                {result.hnStructure && result.hnStructure.structure && (
+                                    <div className="mb-6">
+                                        <h3 className="text-2xl font-semibold mb-2">H1</h3>
+                                        <p>{result.hnStructure.structure.H1}</p>
+
+                                        {result.hnStructure.structure.sections.map((section, index) => (
+                                            <div key={index} className="mb-4">
+                                                {Object.keys(section).map((heading, idx) => (
+                                                    <div key={idx} className="ml-4">
+                                                        <h4 className="text-xl font-semibold">{heading}</h4>
+                                                        {Array.isArray(section[heading]) ? (
+                                                            <ul className="list-disc pl-5">
+                                                                {section[heading].map((item, subIndex) => (
+                                                                    <li key={subIndex}>{item}</li>
+                                                                ))}
+                                                            </ul>
+                                                        ) : (
+                                                            <p>{section[heading]}</p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+
+                        {/*
                         <button className="btn w-full lg:w-1/3 btn-primary">
                             <svg
                                 viewBox="0 0 24 24"
@@ -212,6 +261,7 @@ const ScrapePage = () => {
                             </svg>
                             Exporter les données
                         </button>
+                        */}
                     </div>
                 )}
             </div>

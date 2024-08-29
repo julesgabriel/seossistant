@@ -52,7 +52,7 @@ export async function POST(req: Request): Promise<any> {
     let sitemapUrl = jsonReq.sitemapUrl;
     const browser = await getBrowser();
     const services: Contracts = {
-        aiService: openAIService,
+        aiService: openAIService(process.env.OPENAI_API_KEY),
         scrapingService: scrapingService(browser)
     };
 

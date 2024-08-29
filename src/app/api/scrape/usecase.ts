@@ -1,11 +1,12 @@
-import {AIService} from "@/app/backend/contracts/ai";
+import {AIService, HnAndMetaStructure} from "@/app/backend/contracts/ai";
 import {Scraping, SearchScrapingResult} from "@/app/backend/contracts/scraping";
 
 export type Contracts = { aiService: AIService; scrapingService: Scraping }
 
 export type UseCaseOutput = {
     aiAnswer: string,
-    answersGoogleSearch: SearchScrapingResult
+    answersGoogleSearch: SearchScrapingResult,
+    hnStructure: HnAndMetaStructure
 }
 
 export async function usecase(
@@ -18,8 +19,10 @@ export async function usecase(
     const sitemapContent = await scrapingService.scrapSiteMap(sitemapURL);
     const aiAnswer = await aiService.findUrlsBasedOnKeywordsProvided(keywords, sitemapContent)
     const computedAiAnswer = JSON.parse(<string>aiAnswer)
+    const hnStructure = await aiService.generateHnStructure(keywords)
     return {
         answersGoogleSearch,
-        aiAnswer: computedAiAnswer
+        aiAnswer: computedAiAnswer,
+        hnStructure
     }
 }
