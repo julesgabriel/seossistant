@@ -1,37 +1,28 @@
-import {
-    Bird,
-    Rabbit,
-    Turtle,
-    Settings
-} from "lucide-react";
-
 import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
-import {
-    Drawer,
-    DrawerContent,
-    DrawerDescription,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@/components/ui/drawer";
-import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {Textarea} from "@/components/ui/textarea";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
+import {Input} from "@/components/ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {ReactNode} from "react";
+import {LoadingSpinner} from "@/components/atoms/loader";
+import {SiteMapsOutput} from "@/app/api/sitemaps/route";
 
-export function Playground(children: React.ReactNode) {
+export function Playground({
+                               children, // Children should be passed as part of props
+                               loading,
+                               setSearchedValue,
+                               setWebsite,
+                               checkSiteMaps,
+                               sitemaps,
+                               setSiteMaps
+                           }: {
+    children: ReactNode;
+    loading: boolean;
+    setSearchedValue: (e: string) => void;
+    setWebsite: (e: string) => void;
+    checkSiteMaps: (url: string) => Promise<void>;
+    sitemaps: SiteMapsOutput;
+    setSiteMaps: (url: string) => void;
+}) {
     return (
         <div className="grid h-screen w-full pl-4 md:pl-[53px]">
             <div className="flex flex-col">
@@ -44,36 +35,60 @@ export function Playground(children: React.ReactNode) {
                         <form className="grid w-full gap-6">
                             <fieldset className="grid gap-6 rounded-lg border p-4">
                                 <legend className="-ml-1 px-1 text-sm font-medium">Settings</legend>
-                                {/**
-                                 <div className="grid gap-3">
-                                 <Label htmlFor="model">Model</Label>
-                                 <Select>
-                                 <SelectTrigger id="model">
-                                 <SelectValue placeholder="Select a model" />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                 </SelectContent>
-                                 </Select>
-                                 </div>
-                                 **/
-                                }
+
                                 <div className="grid gap-3">
                                     <Label htmlFor="principal-keyword">Mot clé principal</Label>
-                                    <Input id="principal-keyword" type="text"
-                                           placeholder="Entrez votre mot clé principal"/>
+                                    <Input
+                                        id="principal-keyword"
+                                        type="text"
+                                        placeholder="Entrez votre mot clé principal"
+                                        onChange={(e) => setSearchedValue(e.target.value)}
+                                    />
                                 </div>
+
                                 <div className="grid gap-3">
                                     <Label htmlFor="website-url">Url du site</Label>
-                                    <Input id="website-url" type="text" placeholder="Entrez l'url de votre site"/>
+                                    <Input
+                                        id="website-url"
+                                        type="text"
+                                        placeholder="Entrez l'url de votre site"
+                                        onChange={(e) => setWebsite(e.target.value)}
+                                        onBlur={(e) => checkSiteMaps(e.target.value)}
+                                    />
+                                    {loading && (
+                                        <div className="w-1/3">
+                                            <LoadingSpinner/>
+                                        </div>
+                                    )}
                                 </div>
+
+                                {sitemaps.multipleSitemaps && (
+                                    <div className="grid gap-3">
+                                        <Label htmlFor="sitemap">Sitemap</Label>
+                                        <Select onValueChange={(value) => setSiteMaps(value)}>
+                                            <SelectTrigger id="sitemap">
+                                                <SelectValue placeholder="Select a sitemap"/>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {sitemaps.sitemap.map((url, index) => (
+                                                    <SelectItem key={index} value={url}>
+                                                        {url}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
                                 <div className="grid gap-3">
                                     <Label htmlFor="keywords">Mots clés</Label>
                                     <Input id="keywords" type="text" placeholder="Entrez vos mots clés"/>
-                                    <span className="px-1 text-sm text-neutral-500">Vos mots clés doivent être séparés d'une virgule entre eux</span>
+                                    <span className="px-1 text-sm text-neutral-500">
+                    Vos mots clés doivent être séparés d'une virgule entre eux
+                  </span>
                                 </div>
                             </fieldset>
                         </form>
-
                     </div>
 
                     <div
@@ -81,7 +96,7 @@ export function Playground(children: React.ReactNode) {
                         <Badge variant="outline" className="absolute right-3 top-3">
                             Output
                         </Badge>
-                        <children/>
+                        {children}
                     </div>
                 </main>
             </div>

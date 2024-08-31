@@ -1,14 +1,10 @@
 "use client";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Link from "next/link";
 import {SiteMapsOutput} from "@/app/api/sitemaps/route";
 import {HnAndMetaStructure} from "@/app/backend/contracts/ai";
 import {Playground} from "@/components/ui/blocks/playground";
 import {ResultScraping} from "@/components/ui/blocks/result-scraping";
-import {Button} from "@/components/ui/button";
-import {Label} from "@/components/ui/label";
-import {Textarea} from "@/components/ui/textarea";
-import {CornerDownLeft} from "lucide-react";
 
 export type ScrapingResult = {
     response: string[];
@@ -18,6 +14,11 @@ export type ScrapingResult = {
 }
 
 const ScrapePage = () => {
+    const setPrincipalKeyword = (value: string) => setSearchedValue(value);
+    const setWebsite = (value: string) => setWebsiteUrl(value);
+
+    const setSiteMaps = (url: string) => setSelectedSitemap(url);
+
     const [searchedValue, setSearchedValue] = useState("");
     const [keywords, setKeywords] = useState("");
     const [websiteUrl, setWebsiteUrl] = useState("");
@@ -94,10 +95,22 @@ const ScrapePage = () => {
         }
     };
 
+    useEffect(() => {
+        if (searchedValue) {
+            alert(searchedValue)
+        }
+    }, [searchedValue])
+
     return (
         <>
-            <Playground>
-
+            <Playground
+                loading={loadingSitemap}
+                setSearchedValue={setPrincipalKeyword}
+                setWebsite={setWebsite}
+                checkSiteMaps={checkSiteMaps}
+                sitemaps={sitemaps}
+                setSiteMaps={setSiteMaps}
+            >
                 {isFinished && (
                     <>
                         <ResultScraping
