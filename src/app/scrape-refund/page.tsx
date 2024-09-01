@@ -38,8 +38,7 @@ const ScrapePage = () => {
             (value) => {
                 if (sitemaps.multipleSitemaps) {
                     return sitemaps.sitemap.includes(value);
-                }
-                else {
+                } else {
                     return true;
                 }
             },
@@ -95,8 +94,7 @@ const ScrapePage = () => {
                         title: "Plusieurs sitemaps ont été trouvés",
                         description: "Merci de choisir un sitemap pour continuer",
                     });
-                }
-                else {
+                } else {
                     setSelectedSitemap(data.sitemap[0]);
                 }
                 setLoadingSitemap(false);
@@ -132,6 +130,7 @@ const ScrapePage = () => {
             return;
         }
 
+        setIsFinished(false);
         setLoading(true);
         try {
             const response = await fetch(`/api/scrape`, {
@@ -172,7 +171,6 @@ const ScrapePage = () => {
                 setKeywordsCommaSeparated={setKeywordsCommaSeparated}
                 callHandleScrape={callHandleScrape}
                 loading={loading}
-
             >
 
                 {isFinished ? (

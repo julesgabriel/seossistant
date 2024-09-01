@@ -64,10 +64,10 @@ export const openAIService = (apiKey: any): AIService => ({
 
         const messages: ChatCompletionMessageParam[] = [
             {
-                role: 'system',
-                content: `You are an SEO expert. 
+                "role": "system",
+                "content": `You are an SEO expert.
 
-For the keyword "${keywords[0]}", write an optimized *Title*, a short *meta-description* that entices clicks (for a content page, not e-commerce), and a detailed outline containing an *H1* and *several structured* *H2* or *H3* sections *WITHOUT* conclusion. 
+For the keyword "${keywords[0]}", write an optimized *Title*, a short *meta-description* that entices clicks (for a content page, not e-commerce), and a detailed outline containing an *H1* heading followed by *H2* sections, each with one or more *H3* subheadings. Ensure that every H2 section has at least one H3 subheading. 
 
 Use the following exact format and ensure all content is in French:
 
@@ -78,14 +78,15 @@ Use the following exact format and ensure all content is in French:
     "H1": "string",
     "sections": [
       {
-        "H2 or H3 heading": ["string or list of strings"]
+        "H2": "string",
+        "H3": ["string or list of strings"]
       }
     ]
   }
 }
-
 Respond with valid JSON only. Do not include any explanations, comments, or any other text outside the JSON structure.`
             }
+
 
         ];
 

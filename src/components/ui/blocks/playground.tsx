@@ -63,8 +63,9 @@ export function Playground({
                                         onBlur={(e) => checkSiteMaps(e.target.value)}
                                     />
                                     {loadingSitemap && (
-                                        <div className="w-1/3">
+                                        <div>
                                             <LoadingSpinner/>
+                                            <span className="text-sm mt-2">Nous vérifions la présence de sitemaps sur votre site web</span>
                                         </div>
                                     )}
                                 </div>
@@ -89,11 +90,11 @@ export function Playground({
 
                                 <div className="grid gap-3">
                                     <Label htmlFor="keywords">Mots clés</Label>
-                                    <Input id="keywords" type="text" placeholder="Entrez vos mots clés"
-                                           onChange={e => setKeywordsCommaSeparated(e.target.value)}/><span
-                                    className="px-1 text-sm text-neutral-500">
-                                    Vos mots clés doivent être séparés d'une virgule entre eux
+                                    <span className="text-sm text-neutral-500">
+                                    Vos mots clés doivent être séparés d'une virgule
                                 </span>
+                                    <Input id="keywords" type="text" placeholder="Entrez vos mots clés"
+                                           onChange={e => setKeywordsCommaSeparated(e.target.value)}/>
                                 </div>
                                 <div className="grid gap-3">
                                     <Button
