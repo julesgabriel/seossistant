@@ -36,11 +36,11 @@ export const openAIService = (apiKey: any): AIService => ({
                     "  ...\n" +
                     "]\n" +
                     "\n" +
-                    "Do not show any further explanation nor text inly the json" +
-                    "Do not show markup neither (like ```json ``` for example) " + JSON.stringify({
+                    JSON.stringify({
                         keywords,
                         sitemap
-                    }) + 'Based on this data, provide relevant URLs in JSON format only.\n',
+                    }) + 'Based on this data, provide relevant URLs in JSON format only. ' +
+                    'No markup neither (like ```json```for example) and no further explanation\n',
             }
         ];
         const completion = await openai.chat.completions.create({
@@ -63,27 +63,30 @@ export const openAIService = (apiKey: any): AIService => ({
         // Configure the OpenAI client
 
         const messages: ChatCompletionMessageParam[] = [
-            {role: "system", content: "You are an SEO expert."},
             {
                 role: 'system',
-                content: `For the keyword ${keywords[0]}, write an optimized Title, a short meta-description that entices clicks (for a content page, not e-commerce), and a detailed outline containing an H1 and several structured H2 or H3 sections. Clearly specify which parts are H2 and which are H3. Everything should be in French. Based on this data, provide relevant URLs in JSON format only. Do not show markup neither (like \`\`\`json \`\`\` for example)` +
-                    "Here is the format i want for example:" +
-                    "type HnAndMetaStructure = {\n" +
-                    "    title: string,\n" +
-                    "    meta_description: string,\n" +
-                    "    structure: Structure\n" +
-                    "}\n" +
-                    "\n" +
-                    "type Structure = {\n" +
-                    "    H1: string,\n" +
-                    "    sections: Array<Section>\n" +
-                    "}\n" +
-                    "\n" +
-                    "type Section = {\n" +
-                    "    [key: string]: string | string[]\n" +
-                    "}"
-                ,
+                content: `You are an SEO expert. 
+
+For the keyword "${keywords[0]}", write an optimized Title, a short meta-description that entices clicks (for a content page, not e-commerce), and a detailed outline containing an H1 and several structured H2 or H3 sections. 
+
+Use the following exact format and ensure all content is in French:
+
+{
+  "title": "string",
+  "meta_description": "string",
+  "structure": {
+    "H1": "string",
+    "sections": [
+      {
+        "H2 or H3 heading": ["string or list of strings"]
+      }
+    ]
+  }
+}
+
+Respond with valid JSON only. Do not include any explanations, comments, or any other text outside the JSON structure.`
             }
+
         ];
 
         const completion = await openai.chat.completions.create({
@@ -93,7 +96,6 @@ export const openAIService = (apiKey: any): AIService => ({
         return JSON.parse(<string>completion.choices[0].message.content);
     }
 });
-
 
 
 export type HnAndMetaStructure = {

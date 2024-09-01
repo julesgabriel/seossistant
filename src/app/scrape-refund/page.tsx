@@ -19,6 +19,10 @@ const ScrapePage = () => {
 
     const setSiteMaps = (url: string) => setSelectedSitemap(url);
 
+    const setKeywordsCommaSeparated = (value: string) => setKeywords(value);
+
+    const callHandleScrape = () => handleScrape();
+
     const [searchedValue, setSearchedValue] = useState("");
     const [keywords, setKeywords] = useState("");
     const [websiteUrl, setWebsiteUrl] = useState("");
@@ -58,7 +62,6 @@ const ScrapePage = () => {
             });
             const data = await response.json();
             setSitemaps(data);
-            setSelectedSitemap(data.sitemap[0]);
             setLoadingSitemap(false);
         } catch (error) {
             setLoadingSitemap(false);
@@ -81,11 +84,12 @@ const ScrapePage = () => {
                 }),
             });
             const data = await response.json();
+            console.log('DATA', data)
             setResult({
                 response: data.answersGoogleSearch.answers || [],
                 peopleAlsoAskQuestions: data.answersGoogleSearch.questions || [],
                 maillage: data.aiAnswer || [],
-                hnStructure: data.hnStructure as HnAndMetaStructure
+                hnStructure: data.hnStructure
             });
         } catch (error) {
             console.error("Error:", error);
@@ -96,27 +100,29 @@ const ScrapePage = () => {
     };
 
     useEffect(() => {
-        if (searchedValue) {
-            alert(searchedValue)
-        }
-    }, [searchedValue])
+        console.log('RESULT', result)
+    }, [result])
 
     return (
         <>
             <Playground
-                loading={loadingSitemap}
+                loadingSitemap={loadingSitemap}
                 setSearchedValue={setPrincipalKeyword}
                 setWebsite={setWebsite}
                 checkSiteMaps={checkSiteMaps}
                 sitemaps={sitemaps}
                 setSiteMaps={setSiteMaps}
+                setKeywordsCommaSeparated={setKeywordsCommaSeparated}
+                callHandleScrape={callHandleScrape}
+                loading={loading}
+
             >
                 {isFinished && (
                     <>
                         <ResultScraping
+                            result={result}
                             searchedValue={searchedValue}
-                            hnStructure={result.hnStructure} maillage={result.maillage} response={result.response}
-                            peopleAlsoAskQuestions={result.peopleAlsoAskQuestions}/>
+                        />
                     </>
                 )}
 

@@ -5,23 +5,30 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {ReactNode} from "react";
 import {LoadingSpinner} from "@/components/atoms/loader";
 import {SiteMapsOutput} from "@/app/api/sitemaps/route";
+import {Button} from "@/components/ui/button";
 
 export function Playground({
                                children, // Children should be passed as part of props
-                               loading,
+                               loadingSitemap,
                                setSearchedValue,
                                setWebsite,
                                checkSiteMaps,
                                sitemaps,
-                               setSiteMaps
+                               setSiteMaps,
+                               setKeywordsCommaSeparated,
+                               callHandleScrape,
+                               loading,
                            }: {
     children: ReactNode;
-    loading: boolean;
+    loadingSitemap: boolean;
     setSearchedValue: (e: string) => void;
     setWebsite: (e: string) => void;
     checkSiteMaps: (url: string) => Promise<void>;
     sitemaps: SiteMapsOutput;
     setSiteMaps: (url: string) => void;
+    setKeywordsCommaSeparated: (e: string) => void;
+    callHandleScrape: () => void;
+    loading: boolean;
 }) {
     return (
         <div className="grid h-screen w-full pl-4 md:pl-[53px]">
@@ -55,7 +62,7 @@ export function Playground({
                                         onChange={(e) => setWebsite(e.target.value)}
                                         onBlur={(e) => checkSiteMaps(e.target.value)}
                                     />
-                                    {loading && (
+                                    {loadingSitemap && (
                                         <div className="w-1/3">
                                             <LoadingSpinner/>
                                         </div>
@@ -67,7 +74,7 @@ export function Playground({
                                         <Label htmlFor="sitemap">Sitemap</Label>
                                         <Select onValueChange={(value) => setSiteMaps(value)}>
                                             <SelectTrigger id="sitemap">
-                                                <SelectValue placeholder="Select a sitemap"/>
+                                                <SelectValue placeholder="Selectionnez le sitemap souhaité"/>
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {sitemaps.sitemap.map((url, index) => (
@@ -82,10 +89,20 @@ export function Playground({
 
                                 <div className="grid gap-3">
                                     <Label htmlFor="keywords">Mots clés</Label>
-                                    <Input id="keywords" type="text" placeholder="Entrez vos mots clés"/>
-                                    <span className="px-1 text-sm text-neutral-500">
-                    Vos mots clés doivent être séparés d'une virgule entre eux
-                  </span>
+                                    <Input id="keywords" type="text" placeholder="Entrez vos mots clés"
+                                           onChange={e => setKeywordsCommaSeparated(e.target.value)}/><span
+                                    className="px-1 text-sm text-neutral-500">
+                                    Vos mots clés doivent être séparés d'une virgule entre eux
+                                </span>
+                                </div>
+                                <div className="grid gap-3">
+                                    <Button
+                                        className="bg-primary hover:bg-secondary"
+                                        disabled={loading}
+                                        onClick={() => callHandleScrape()}
+                                    >
+                                        {loading ? "Merci de patienter..." : "Lancer la génération du brief"}
+                                    </Button>
                                 </div>
                             </fieldset>
                         </form>
