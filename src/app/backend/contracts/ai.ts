@@ -67,7 +67,7 @@ export const openAIService = (apiKey: any): AIService => ({
                 role: 'system',
                 content: `You are an SEO expert. 
 
-For the keyword "${keywords[0]}", write an optimized Title, a short meta-description that entices clicks (for a content page, not e-commerce), and a detailed outline containing an H1 and several structured H2 or H3 sections. 
+For the keyword "${keywords[0]}", write an optimized *Title*, a short *meta-description* that entices clicks (for a content page, not e-commerce), and a detailed outline containing an *H1* and *several structured* *H2* or *H3* sections *WITHOUT* conclusion. 
 
 Use the following exact format and ensure all content is in French:
 

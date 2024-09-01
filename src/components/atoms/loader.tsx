@@ -4,9 +4,7 @@ export const LoadingSpinner = () => {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
-            style={{ margin: "auto", background: "none", display: "block" }}
-            width="100"
-            height="100"
+            style={{ margin: "0 auto", background: "none", display: "block", maxHeight: "100px" }}
             viewBox="0 0 100 100"
             preserveAspectRatio="xMidYMid"
         >

@@ -1,10 +1,14 @@
 "use client";
 import {useEffect, useState} from "react";
-import Link from "next/link";
 import {SiteMapsOutput} from "@/app/api/sitemaps/route";
 import {HnAndMetaStructure} from "@/app/backend/contracts/ai";
 import {Playground} from "@/components/ui/blocks/playground";
 import {ResultScraping} from "@/components/ui/blocks/result-scraping";
+import {Toaster} from "@/components/ui/toaster";
+import {useToast} from "@/hooks/use-toast"
+import {LoadingSpinner} from "@/components/atoms/loader";
+import WordRotate from "@/components/ui/wordRotate";
+
 
 export type ScrapingResult = {
     response: string[];
@@ -14,6 +18,8 @@ export type ScrapingResult = {
 }
 
 const ScrapePage = () => {
+
+    const {toast} = useToast();
     const setPrincipalKeyword = (value: string) => setSearchedValue(value);
     const setWebsite = (value: string) => setWebsiteUrl(value);
 
@@ -49,23 +55,38 @@ const ScrapePage = () => {
     const [selectedSitemap, setSelectedSitemap] = useState("");
 
     const checkSiteMaps = async (url: string) => {
-        try {
-            setLoadingSitemap(true);
-            const response = await fetch(`/api/sitemaps`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    websiteUrl: url,
-                }),
-            });
-            const data = await response.json();
-            setSitemaps(data);
-            setLoadingSitemap(false);
-        } catch (error) {
-            setLoadingSitemap(false);
-            console.error("Error:", error);
+        if (url !== "") {
+            try {
+                setLoadingSitemap(true);
+                const response = await fetch(`/api/sitemaps`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        websiteUrl: url,
+                    }),
+                });
+                const data = await response.json();
+                setSitemaps(data);
+                if (data.multipleSitemaps) {
+                    toast({
+                        className: "bg-secondary text-white",
+                        title: "Plusieurs sitemaps ont été trouvés",
+                        description: "Merci de choisir un sitemap pour continuer",
+                    });
+                }
+                setLoadingSitemap(false);
+            } catch (error) {
+                setLoadingSitemap(false);
+                toast({
+                    className: "bg-red-500 text-white",
+                    title: "Erreur lors de la recherche du sitemap",
+                    description: "Merci de vérifier l'url du site",
+                });
+                setWebsiteUrl("");
+                console.error("Error:", error);
+            }
         }
     };
 
@@ -84,7 +105,6 @@ const ScrapePage = () => {
                 }),
             });
             const data = await response.json();
-            console.log('DATA', data)
             setResult({
                 response: data.answersGoogleSearch.answers || [],
                 peopleAlsoAskQuestions: data.answersGoogleSearch.questions || [],
@@ -117,16 +137,40 @@ const ScrapePage = () => {
                 loading={loading}
 
             >
-                {isFinished && (
-                    <>
-                        <ResultScraping
-                            result={result}
-                            searchedValue={searchedValue}
-                        />
-                    </>
-                )}
+
+                {isFinished ? (
+                        <>
+                            <ResultScraping
+                                result={result}
+                                searchedValue={searchedValue}
+                            />
+                        </>
+                    )
+                    :
+                    loading && <div className="flex flex-col justify-center h-full gap-y-16">
+                        <LoadingSpinner/>
+                        <div className="mx-auto text-center">
+                            <WordRotate words={[
+                                "Google Dance rendait les positions très instables.",
+                                "Le premier backlink pointait vers le site du CERN.",
+                                "Google s’appelait initialement 'Backrub' pour analyser les liens.",
+                                "Matt Cutts traquait activement le spam SEO chez Google.",
+                                "Yahoo! référençait manuellement les sites web au départ.",
+                                "Les premiers moteurs de recherche ignoraient totalement les backlinks.",
+                                "Keyword stuffing dominait les pratiques SEO dans les années 90.",
+                                "Panda a réduit la visibilité des fermes de contenu.",
+                                "Penguin pénalisait les liens artificiels massivement achetés.",
+                                "Les recherches vocales transforment lentement le SEO aujourd'hui."
+                            ]}
+                                        duration={3500}
+                            />
+                        </div>
+
+                    </div>
+                }
 
             </Playground>
+            <Toaster/>
         </>
     );
 };
