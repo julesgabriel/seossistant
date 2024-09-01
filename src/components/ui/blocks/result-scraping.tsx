@@ -4,9 +4,8 @@ import Link from "next/link";
 
 export function ResultScraping({result, searchedValue}: { result: ScrapingResult, searchedValue: string }) {
 
-
     return (
-        <div className="md:w-fit w-1/2 mt-4 flex flex-col md:gap-8">
+        <div className="w-full md:w-fit mt-4 flex flex-col md:gap-8">
             <div>
                 <h3 className="text-2xl font-semibold mb-2">
                     Résultats de la SERP pour le mot-clé{" "}
@@ -60,7 +59,6 @@ export function ResultScraping({result, searchedValue}: { result: ScrapingResult
 
             <h2 className="text-3xl font-semibold mb-4 text-gray-800">Hn Structure et meta</h2>
 
-            {/* Display the Title and Meta Description */}
             {result?.hnStructure && (
                 <div className="flex flex-col gap-y-3">
                     <h3 className="text-2xl font-semibold">Title Optimisé</h3>
@@ -71,7 +69,6 @@ export function ResultScraping({result, searchedValue}: { result: ScrapingResult
                 </div>
             )}
 
-            {/* Display the H1 and structured sections */}
             {result?.hnStructure?.structure && (
                 <div className="flex flex-col gap-y-3">
                     <h3 className="text-2xl font-semibold">H1</h3>
@@ -100,18 +97,6 @@ export function ResultScraping({result, searchedValue}: { result: ScrapingResult
                     )}
                 </div>
             )}
-
-            {
-                /**
-                 *  <div className="flex items-center p-3 pt-0">
-                 *                     <Button type="submit" size="sm" className="bg-secondary ml-auto gap-1.5 p-5">
-                 *                         Exporter les résultats
-                 *                         <Download className="size-3.5"/>
-                 *                     </Button>
-                 *                 </div>
-                 */
-            }
-
         </div>
     )
 }

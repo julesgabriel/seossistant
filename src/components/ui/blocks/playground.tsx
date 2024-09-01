@@ -1,14 +1,14 @@
 import {Badge} from "@/components/ui/badge";
+import {ReactNode} from "react";
+import {SiteMapsOutput} from "@/app/api/sitemaps/route";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {ReactNode} from "react";
 import {LoadingSpinner} from "@/components/atoms/loader";
-import {SiteMapsOutput} from "@/app/api/sitemaps/route";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Button} from "@/components/ui/button";
 
 export function Playground({
-                               children, // Children should be passed as part of props
+                               children,
                                loadingSitemap,
                                setSearchedValue,
                                setWebsite,
@@ -31,14 +31,14 @@ export function Playground({
     loading: boolean;
 }) {
     return (
-        <div className="grid h-screen w-full pl-4 md:pl-[53px]">
+        <div className="h-screen w-full pl-4 md:pl-[53px]">
             <div className="flex flex-col">
                 <header className="sticky top-0 z-10 flex h-[53px] items-center gap-1 border-b bg-background px-4">
                     <h1 className="text-xl font-semibold">Playground</h1>
                 </header>
 
-                <main className="grid flex-1 gap-4 p-4 overflow-auto md:grid-cols-2 lg:grid-cols-3">
-                    <div className="relative hidden flex-col items-start gap-8 md:flex">
+                <main className="flex-1 gap-4 p-4 overflow-auto grid md:grid md:grid-cols-2 lg:grid-cols-3">
+                    <div className="relative w-full md:w-fit flex-col items-start gap-8 md:flex md:static">
                         <form className="grid w-full gap-6">
                             <fieldset className="grid gap-6 rounded-lg border p-4">
                                 <legend className="-ml-1 px-1 text-sm font-medium">Settings</legend>
@@ -65,7 +65,9 @@ export function Playground({
                                     {loadingSitemap && (
                                         <div>
                                             <LoadingSpinner/>
-                                            <span className="text-sm mt-2">Nous vérifions la présence de sitemaps sur votre site web</span>
+                                            <span className="text-sm mt-2">
+                                                Nous vérifions la présence de sitemaps sur votre site web
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -91,14 +93,18 @@ export function Playground({
                                 <div className="grid gap-3">
                                     <Label htmlFor="keywords">Mots clés</Label>
                                     <span className="text-sm text-neutral-500">
-                                    Vos mots clés doivent être séparés d'une virgule
-                                </span>
-                                    <Input id="keywords" type="text" placeholder="Entrez vos mots clés"
-                                           onChange={e => setKeywordsCommaSeparated(e.target.value)}/>
+                                        Vos mots clés doivent être séparés d'une virgule
+                                    </span>
+                                    <Input
+                                        id="keywords"
+                                        type="text"
+                                        placeholder="Entrez vos mots clés"
+                                        onChange={(e) => setKeywordsCommaSeparated(e.target.value)}
+                                    />
                                 </div>
                                 <div className="grid gap-3">
                                     <Button
-                                        type={"button"}
+                                        type="button"
                                         className="bg-primary hover:bg-secondary"
                                         disabled={loading}
                                         onClick={() => callHandleScrape()}
@@ -111,11 +117,13 @@ export function Playground({
                     </div>
 
                     <div
-                        className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2">
+                        className="relative flex flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2 md:static md:min-h-[50vh] overflow-auto md:overflow-hidden h-full md:w-auto md:h-auto">
                         <Badge variant="outline" className="absolute right-3 top-3">
                             Output
                         </Badge>
-                        {children}
+                        <div className="mt-3">
+                            {children}
+                        </div>
                     </div>
                 </main>
             </div>

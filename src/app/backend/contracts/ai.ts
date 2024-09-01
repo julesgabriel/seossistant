@@ -86,8 +86,6 @@ Use the following exact format and ensure all content is in French:
 }
 Respond with valid JSON only. Do not include any explanations, comments, or any other text outside the JSON structure.`
             }
-
-
         ];
 
         const completion = await openai.chat.completions.create({
