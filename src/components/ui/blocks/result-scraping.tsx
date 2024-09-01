@@ -1,15 +1,12 @@
 "use client"
 import {ScrapingResult} from "@/app/scrape-refund/page";
 import Link from "next/link";
-import {Button} from "@/components/ui/button";
-import { Download} from "lucide-react";
-import {useEffect} from "react";
 
 export function ResultScraping({result, searchedValue}: { result: ScrapingResult, searchedValue: string }) {
 
 
     return (
-        <div className="mt-4 flex flex-col gap-8">
+        <div className="md:w-fit w-1/2 mt-4 flex flex-col md:gap-8">
             <div>
                 <h3 className="text-2xl font-semibold mb-2">
                     Résultats de la SERP pour le mot-clé{" "}

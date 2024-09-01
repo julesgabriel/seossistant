@@ -97,6 +97,7 @@ export function Playground({
                                 </div>
                                 <div className="grid gap-3">
                                     <Button
+                                        type={"button"}
                                         className="bg-primary hover:bg-secondary"
                                         disabled={loading}
                                         onClick={() => callHandleScrape()}

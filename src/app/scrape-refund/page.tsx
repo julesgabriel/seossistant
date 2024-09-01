@@ -8,6 +8,7 @@ import {Toaster} from "@/components/ui/toaster";
 import {useToast} from "@/hooks/use-toast"
 import {LoadingSpinner} from "@/components/atoms/loader";
 import WordRotate from "@/components/ui/wordRotate";
+import {z} from "zod";
 
 
 export type ScrapingResult = {
@@ -16,6 +17,7 @@ export type ScrapingResult = {
     maillage: any[];
     hnStructure: HnAndMetaStructure;
 }
+
 
 const ScrapePage = () => {
 
@@ -28,6 +30,24 @@ const ScrapePage = () => {
     const setKeywordsCommaSeparated = (value: string) => setKeywords(value);
 
     const callHandleScrape = () => handleScrape();
+
+    const scrapeSchema = z.object({
+        searchValue: z.string().min(1, "Le mot clé principal est requis."),
+        keywords: z.string().min(3, "Les mots clés doivent être valide"),
+        sitemapUrl: z.string().min(1, "Merci d'entrer une url valide").refine(
+            (value) => {
+                if (sitemaps.multipleSitemaps) {
+                    return sitemaps.sitemap.includes(value);
+                }
+                else {
+                    return true;
+                }
+            },
+            {
+                message: "Sélectionnez un sitemap valide.",
+            }
+        ),
+    });
 
     const [searchedValue, setSearchedValue] = useState("");
     const [keywords, setKeywords] = useState("");
@@ -76,6 +96,9 @@ const ScrapePage = () => {
                         description: "Merci de choisir un sitemap pour continuer",
                     });
                 }
+                else {
+                    setSelectedSitemap(data.sitemap[0]);
+                }
                 setLoadingSitemap(false);
             } catch (error) {
                 setLoadingSitemap(false);
@@ -91,6 +114,24 @@ const ScrapePage = () => {
     };
 
     const handleScrape = async () => {
+        const command = {
+            searchValue: searchedValue,
+            keywords: keywords,
+            sitemapUrl: selectedSitemap,
+        }
+        const validationResult = scrapeSchema.safeParse(command);
+
+        if (!validationResult.success) {
+            validationResult.error.errors.forEach((error) => {
+                toast({
+                    className: "bg-red-500 text-white",
+                    title: "Erreur lors de la validation",
+                    description: error.message,
+                });
+            })
+            return;
+        }
+
         setLoading(true);
         try {
             const response = await fetch(`/api/scrape`, {
@@ -99,9 +140,8 @@ const ScrapePage = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    searchValue: searchedValue,
-                    keywords: [searchedValue, ...keywords.split(",")],
-                    sitemapUrl: selectedSitemap,
+                    ...command,
+                    keywords: [searchedValue, ...command.keywords.split(",").map((keyword) => keyword.trim())],
                 }),
             });
             const data = await response.json();
@@ -119,9 +159,6 @@ const ScrapePage = () => {
         }
     };
 
-    useEffect(() => {
-        console.log('RESULT', result)
-    }, [result])
 
     return (
         <>
@@ -170,7 +207,9 @@ const ScrapePage = () => {
                 }
 
             </Playground>
-            <Toaster/>
+            <Toaster
+
+            />
         </>
     );
 };
