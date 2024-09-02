@@ -1,6 +1,6 @@
 "use client"
-import {ScrapingResult} from "@/app/scrape-refund/page";
 import Link from "next/link";
+import {ScrapingResult} from "@/app/scrape/page";
 
 export function ResultScraping({result, searchedValue}: { result: ScrapingResult, searchedValue: string }) {
 

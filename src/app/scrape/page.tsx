@@ -1,19 +1,69 @@
 "use client";
-import {useState} from "react";
-import Link from "next/link";
+import {useEffect, useState} from "react";
 import {SiteMapsOutput} from "@/app/api/sitemaps/route";
 import {HnAndMetaStructure} from "@/app/backend/contracts/ai";
+import {Playground} from "@/components/ui/blocks/playground";
+import {ResultScraping} from "@/components/ui/blocks/result-scraping";
+import {Toaster} from "@/components/ui/toaster";
+import {useToast} from "@/hooks/use-toast"
+import {LoadingSpinner} from "@/components/atoms/loader";
+import WordRotate from "@/components/ui/wordRotate";
+import {z} from "zod";
+
+
+export type ScrapingResult = {
+    response: string[];
+    peopleAlsoAskQuestions: string[];
+    maillage: any[];
+    hnStructure: HnAndMetaStructure;
+}
+
 
 const ScrapePage = () => {
+
+    const {toast} = useToast();
+    const setPrincipalKeyword = (value: string) => setSearchedValue(value);
+    const setWebsite = (value: string) => setWebsiteUrl(value);
+
+    const setSiteMaps = (url: string) => setSelectedSitemap(url);
+
+    const setKeywordsCommaSeparated = (value: string) => setKeywords(value);
+
+    const callHandleScrape = () => handleScrape();
+
+    const scrapeSchema = z.object({
+        searchValue: z.string().min(1, "Le mot clé principal est requis."),
+        keywords: z.string().min(3, "Les mots clés doivent être valide"),
+        sitemapUrl: z.string().min(1, "Merci d'entrer une url valide").refine(
+            (value) => {
+                if (sitemaps.multipleSitemaps) {
+                    return sitemaps.sitemap.includes(value);
+                } else {
+                    return true;
+                }
+            },
+            {
+                message: "Sélectionnez un sitemap valide.",
+            }
+        ),
+    });
+
     const [searchedValue, setSearchedValue] = useState("");
     const [keywords, setKeywords] = useState("");
     const [websiteUrl, setWebsiteUrl] = useState("");
-    const [result, setResult] = useState({
+    const [result, setResult] = useState<ScrapingResult>({
         response: [],
         peopleAlsoAskQuestions: [],
         maillage: [],
-        hnStructure: {} as HnAndMetaStructure
-    });
+        hnStructure: {
+            title: "",
+            meta_description: "",
+            structure: {
+                H1: "",
+                sections: []
+            }
+        }
+    })
     const [loading, setLoading] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
     const [loadingSitemap, setLoadingSitemap] = useState(false);
@@ -24,28 +74,63 @@ const ScrapePage = () => {
     const [selectedSitemap, setSelectedSitemap] = useState("");
 
     const checkSiteMaps = async (url: string) => {
-        try {
-            setLoadingSitemap(true);
-            const response = await fetch(`/api/sitemaps`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    websiteUrl: url,
-                }),
-            });
-            const data = await response.json();
-            setSitemaps(data);
-            setSelectedSitemap(data.sitemap[0]);
-            setLoadingSitemap(false);
-        } catch (error) {
-            setLoadingSitemap(false);
-            console.error("Error:", error);
+        if (url !== "") {
+            try {
+                setLoadingSitemap(true);
+                const response = await fetch(`/api/sitemaps`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        websiteUrl: url,
+                    }),
+                });
+                const data = await response.json();
+                setSitemaps(data);
+                if (data.multipleSitemaps) {
+                    toast({
+                        className: "bg-secondary text-white",
+                        title: "Plusieurs sitemaps ont été trouvés",
+                        description: "Merci de choisir un sitemap pour continuer",
+                    });
+                } else {
+                    setSelectedSitemap(data.sitemap[0]);
+                }
+                setLoadingSitemap(false);
+            } catch (error) {
+                setLoadingSitemap(false);
+                toast({
+                    className: "bg-red-500 text-white",
+                    title: "Erreur lors de la recherche du sitemap",
+                    description: "Merci de vérifier l'url du site",
+                });
+                setWebsiteUrl("");
+                console.error("Error:", error);
+            }
         }
     };
 
     const handleScrape = async () => {
+        const command = {
+            searchValue: searchedValue,
+            keywords: keywords,
+            sitemapUrl: selectedSitemap,
+        }
+        const validationResult = scrapeSchema.safeParse(command);
+
+        if (!validationResult.success) {
+            validationResult.error.errors.forEach((error) => {
+                toast({
+                    className: "bg-red-500 text-white",
+                    title: "Erreur lors de la validation",
+                    description: error.message,
+                });
+            })
+            return;
+        }
+
+        setIsFinished(false);
         setLoading(true);
         try {
             const response = await fetch(`/api/scrape`, {
@@ -54,9 +139,8 @@ const ScrapePage = () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    searchValue: searchedValue,
-                    keywords: [searchedValue, ...keywords.split(",") ],
-                    sitemapUrl: selectedSitemap,
+                    ...command,
+                    keywords: [searchedValue, ...command.keywords.split(",").map((keyword) => keyword.trim())],
                 }),
             });
             const data = await response.json();
@@ -64,7 +148,7 @@ const ScrapePage = () => {
                 response: data.answersGoogleSearch.answers || [],
                 peopleAlsoAskQuestions: data.answersGoogleSearch.questions || [],
                 maillage: data.aiAnswer || [],
-                hnStructure: data.hnStructure as HnAndMetaStructure
+                hnStructure: data.hnStructure
             });
         } catch (error) {
             console.error("Error:", error);
@@ -74,196 +158,57 @@ const ScrapePage = () => {
         }
     };
 
+
     return (
-        <div className="py-12">
-            <div className="mt-4 p-4 w-11/12 mx-auto bg-white shadow-lg rounded-lg">
-                <h2 className="text-3xl font-bold mb-6 text-gray-800">Génération du brief</h2>
-                <div className="flex flex-col gap-y-6">
-                    <div>
-                        <label htmlFor="keyword" className="block text-lg font-medium text-gray-700 mb-2">
-                            Mot clé principal
-                        </label>
-                        <input
-                            id="keyword"
-                            className="input w-full lg:w-3/5 input-bordered"
-                            onChange={(e) => setSearchedValue(e.target.value)}
-                            placeholder="Entrez le mot clé"
-                            type="text"
-                            value={searchedValue}
-                        />
-                    </div>
+        <>
+            <Playground
+                loadingSitemap={loadingSitemap}
+                setSearchedValue={setPrincipalKeyword}
+                setWebsite={setWebsite}
+                checkSiteMaps={checkSiteMaps}
+                sitemaps={sitemaps}
+                setSiteMaps={setSiteMaps}
+                setKeywordsCommaSeparated={setKeywordsCommaSeparated}
+                callHandleScrape={callHandleScrape}
+                loading={loading}
+            >
 
-                    <div>
-                        <label htmlFor="websiteUrl" className="block text-lg font-medium text-gray-700 mb-2">
-                            URL du site web
-                        </label>
-                        <input
-                            id="websiteUrl"
-                            className="input w-full lg:w-3/5 input-bordered"
-                            onChange={(e) => setWebsiteUrl(e.target.value)}
-                            onBlur={(e) => checkSiteMaps(e.target.value)}
-                            placeholder="Entrez l'URL de votre site"
-                            type="text"
-                            value={websiteUrl}
-                        />
-                        {loadingSitemap && <p className="text-sm text-gray-500 mt-2">Chargement des sitemaps...</p>}
-                    </div>
-
-                    {sitemaps.multipleSitemaps && websiteUrl !== '' && (
-                        <div>
-                            <label htmlFor="sitemap" className="block text-lg font-medium text-gray-700 mb-2">
-                                Choisissez votre sitemap
-                            </label>
-                            <p className="text-sm text-gray-500 mb-2">
-                                Nous avons trouvé plusieurs sitemaps. Veuillez en sélectionner un pour des résultats
-                                optimisés.
-                            </p>
-                            <select id="sitemap" className="input w-full lg:w-3/5 input-bordered"
-                                    onChange={(e) => setSelectedSitemap(e.target.value)}>
-                                {sitemaps.sitemap.map((item, index) => (
-                                    <option key={index} value={item}>
-                                        {item}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-
-                    <div>
-                        <label htmlFor="keywords" className="block text-lg font-medium text-gray-700 mb-2">
-                            Mots clés supplémentaires
-                        </label>
-                        <textarea
-                            id="keywords"
-                            className="input w-full lg:w-3/5 input-bordered"
-                            onChange={(e) => setKeywords(e.target.value)}
-                            placeholder="Entrez vos mots clés séparés par une virgule"
-                            value={keywords}
-                        />
-                    </div>
-
-                    <div>
-                        <button
-                            className={`btn w-full lg:w-3/5 ${loading ? "btn-disabled" : "btn-primary"}`}
-                            disabled={loading}
-                            onClick={handleScrape}
-                        >
-                            {loading ? "Merci de patienter..." : "Lancer la génération du brief"}
-                        </button>
-                    </div>
-                </div>
-
-                {isFinished && (
-                    <div className="mt-8">
-                        <h2 className="text-3xl font-semibold mb-4 text-gray-800">Résultats</h2>
-
-                        <div className="mb-6">
-                            <h3 className="text-2xl font-semibold mb-2">
-                                Résultats de la SERP pour le mot-clé{" "}
-                                <span className="text-primary">{searchedValue}</span>
-                            </h3>
-                            <ul className="list-decimal pl-5 space-y-2">
-                                {result.response.map((item: string, index: number) => (
-                                    <li key={index} className="break-words">
-                                        <Link href={item} className="text-blue-600 hover:underline">
-                                            {item}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
+                {isFinished ? (
+                        <>
+                            <ResultScraping
+                                result={result}
+                                searchedValue={searchedValue}
+                            />
+                        </>
+                    )
+                    :
+                    loading && <div className="flex flex-col justify-center h-full gap-y-16">
+                        <LoadingSpinner/>
+                        <div className="mx-auto text-center">
+                            <WordRotate words={[
+                                "Google Dance rendait les positions très instables.",
+                                "Le premier backlink pointait vers le site du CERN.",
+                                "Google s’appelait initialement 'Backrub' pour analyser les liens.",
+                                "Matt Cutts traquait activement le spam SEO chez Google.",
+                                "Yahoo! référençait manuellement les sites web au départ.",
+                                "Les premiers moteurs de recherche ignoraient totalement les backlinks.",
+                                "Keyword stuffing dominait les pratiques SEO dans les années 90.",
+                                "Panda a réduit la visibilité des fermes de contenu.",
+                                "Penguin pénalisait les liens artificiels massivement achetés.",
+                                "Les recherches vocales transforment lentement le SEO aujourd'hui."
+                            ]}
+                                        duration={3500}
+                            />
                         </div>
 
-                        <div className="mb-6">
-                            <h3 className="text-2xl font-semibold mb-2">Questions fréquentes</h3>
-                            <ul className="list-disc pl-5 space-y-2">
-                                {result.peopleAlsoAskQuestions.map((item: string, index: number) => (
-                                    <li key={index}>{item}</li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        <div className="mb-6">
-                            <h3 className="text-2xl font-semibold mb-2">Suggestion de maillage interne</h3>
-                            <ul className="list-disc pl-5 space-y-2">
-                                {result.maillage.map((item: any, index: number) => (
-                                    <li key={index}>
-                                        <strong>{item.keyword}</strong>:{" "}
-                                        <a href={item.url} className="text-blue-600 hover:underline">
-                                            {item.url}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {isFinished && (
-                            <div className="mt-8">
-                                <h2 className="text-3xl font-semibold mb-4 text-gray-800">Hn Structure et meta</h2>
-
-                                {/* Display the Title and Meta Description */}
-                                {result.hnStructure && (
-                                    <div className="mb-6">
-                                        <h3 className="text-2xl font-semibold mb-2">Title Optimisé</h3>
-                                        <p>{result.hnStructure.title}</p>
-
-                                        <h3 className="text-2xl font-semibold mb-2 mt-4">Meta Description</h3>
-                                        <p>{result.hnStructure.meta_description}</p>
-                                    </div>
-                                )}
-
-                                {/* Display the H1 and structured sections */}
-                                {result.hnStructure && result.hnStructure.structure && (
-                                    <div className="mb-6">
-                                        <h3 className="text-2xl font-semibold mb-2">H1</h3>
-                                        <p>{result.hnStructure.structure.H1}</p>
-
-                                        {result.hnStructure.structure.sections.map((section, index) => (
-                                            <div key={index} className="mb-4">
-                                                {Object.keys(section).map((heading, idx) => (
-                                                    <div key={idx} className="ml-4">
-                                                        <h4 className="text-xl font-semibold">{heading}</h4>
-                                                        {Array.isArray(section[heading]) ? (
-                                                            <ul className="list-disc pl-5">
-                                                                {section[heading].map((item, subIndex) => (
-                                                                    <li key={subIndex}>{item}</li>
-                                                                ))}
-                                                            </ul>
-                                                        ) : (
-                                                            <p>{section[heading]}</p>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-
-                        <button className="btn w-full lg:w-1/3 btn-primary">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-6 h-6 mr-2"
-                            >
-                                <path
-                                    d="M12 5L11.2929 4.29289L12 3.58579L12.7071 4.29289L12 5ZM13 14C13 14.5523 12.5523 15 12 15C11.4477 15 11 14.5523 11 14L13 14ZM6.29289 9.29289L11.2929 4.29289L12.7071 5.70711L7.70711 10.7071L6.29289 9.29289ZM12.7071 4.29289L17.7071 9.29289L16.2929 10.7071L11.2929 5.70711L12.7071 4.29289ZM13 5L13 14L11 14L11 5L13 5Z"
-                                    fill="#fff"
-                                />
-                                <path
-                                    d="M5 16L5 17C5 18.1046 5.89543 19 7 19L17 19C18.1046 19 19 18.1046 19 17V16"
-                                    stroke="#fff"
-                                    strokeWidth="2"
-                                />
-                            </svg>
-                            Exporter les données
-                        </button>
                     </div>
-                )}
-            </div>
-        </div>
+                }
+
+            </Playground>
+            <Toaster
+
+            />
+        </>
     );
 };
 

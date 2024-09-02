@@ -1,4 +1,3 @@
-import {Badge} from "@/components/ui/badge";
 import {ReactNode} from "react";
 import {SiteMapsOutput} from "@/app/api/sitemaps/route";
 import {Label} from "@/components/ui/label";
@@ -37,10 +36,10 @@ export function Playground({
                     <h1 className="text-xl font-semibold">Playground</h1>
                 </header>
 
-                <main className="flex-1 gap-4 p-4 overflow-auto grid md:grid md:grid-cols-2 lg:grid-cols-3">
+                <main className="flex-1 gap-4 p-4 md:p-4 grid md:grid md:grid-cols-2 lg:grid-cols-3">
                     <div className="relative w-full md:w-fit flex-col items-start gap-8 md:flex md:static">
                         <form className="grid w-full gap-6">
-                            <fieldset className="grid gap-6 rounded-lg border p-4">
+                            <fieldset className="grid gap-6 rounded-lg border p-4 mt-2">
                                 <legend className="-ml-1 px-1 text-sm font-medium">Settings</legend>
 
                                 <div className="grid gap-3">
@@ -93,7 +92,7 @@ export function Playground({
                                 <div className="grid gap-3">
                                     <Label htmlFor="keywords">Mots clés</Label>
                                     <span className="text-sm text-neutral-500">
-                                        Vos mots clés doivent être séparés d'une virgule
+                                        {"Vos mots clés doivent être séparés d'une virgule"}
                                     </span>
                                     <Input
                                         id="keywords"
@@ -117,10 +116,8 @@ export function Playground({
                     </div>
 
                     <div
-                        className="relative flex flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2 md:static md:min-h-[50vh] overflow-auto md:overflow-hidden h-full md:w-auto md:h-auto">
-                        <Badge variant="outline" className="absolute right-3 top-3">
-                            Output
-                        </Badge>
+                        className="relative flex flex-col rounded-xl bg-muted/50 p-4 md:p-0 lg:col-span-2 md:static md:min-h-[50vh] overflow-auto md:overflow-hidden h-full md:w-auto md:h-auto">
+
                         <div className="mt-3">
                             {children}
                         </div>
