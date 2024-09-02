@@ -1,31 +1,51 @@
-const config= {
-    content: [
-        "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-        "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-        "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    ],
-    daisyui: {
-        themes: [
-            {
-                mytheme: {
-                    "primary": "#FFD700",      // Jaune Principal
-                    "secondary": "#FFF8DC",    // Jaune Clair
-                    "accent": "#FFB700",       // Jaune Foncé
-                    "neutral": "#D3D3D3",      // Gris Moyen
-                    "base": "#f5f5f4",     // Blanc
-                    "info": "#FFF8DC",         // Jaune Clair
-                    "success": "#00ff00",      // Couleur par défaut
-                    "warning": "#FFD700",      // Jaune Principal
-                    "error": "#ff0000",        // Couleur par défaut
-                    "light-gray": "#F0F0F0",   // Gris Clair
-                    "dark-gray": "#A9A9A9",    // Gris Foncé
-                    "black": "#000000"     // Noir
-                },
-            },
-        ],
+import type { Config } from "tailwindcss"
+const { fontFamily } = require("tailwindcss/defaultTheme")
+
+const config = {
+  darkMode: ["class"],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  prefix: "",
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
     },
-    plugins: [
-        require('daisyui'),
-    ]
-};
-export default config;
+    extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", ...fontFamily.sans],
+      },
+      colors: {
+        primary: "#005994",        // Bahama blue
+        accent: "#00a7d1",         // Cerulean
+        secondary: "#00adab",      // Persian green
+        background: "#f7f7f7",     // Wild Sand
+        text: "#333333",           // Charcoal
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+} satisfies Config
+
+export default config

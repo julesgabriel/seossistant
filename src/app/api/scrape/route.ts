@@ -12,7 +12,8 @@ async function getBrowser() {
         let launchOptions = {
             headless: true,
             executablePath: await chromium.executablePath(process.env.CHROMIUM_PATH),
-            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--lang=fr-FR'],
+
             dumpio: true
         };
         return await puppeteer.launch(launchOptions)
@@ -51,6 +52,7 @@ export async function POST(req: Request): Promise<any> {
     const keywords = jsonReq.keywords;
     let sitemapUrl = jsonReq.sitemapUrl;
     const browser = await getBrowser();
+    // set the language of the browser
     const services: Contracts = {
         aiService: openAIService(process.env.OPENAI_API_KEY),
         scrapingService: scrapingService(browser)
