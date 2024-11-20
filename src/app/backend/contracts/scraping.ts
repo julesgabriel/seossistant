@@ -14,6 +14,9 @@ export const scrapingService = (browser: any): Scraping => ({
         const page = await browser.newPage();
         try {
             // Disable unnecessary resources for faster page load
+            await page.setExtraHTTPHeaders({
+                'Accept-Language': 'fr-FR'
+            });
             await page.setRequestInterception(true);
             // @ts-ignore
             page.on('request', (req) => {
@@ -59,6 +62,9 @@ export const scrapingService = (browser: any): Scraping => ({
     },
     async googleSearchScraping(searchValue: string): Promise<SearchScrapingResult> {
         const page = await browser.newPage()
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'fr-FR'
+        });
         const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchValue)}`;
         await page.goto(searchUrl, {waitUntil: 'domcontentloaded'});
 
