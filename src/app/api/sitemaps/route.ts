@@ -11,7 +11,12 @@ async function getBrowser() {
         let launchOptions = {
             headless: true,
             executablePath: await chromium.executablePath(process.env.CHROMIUM_PATH),
-            args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+            args: [
+                ...chromium.args,
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+            ],
             dumpio: true
         };
         return await puppeteer.launch(launchOptions)
@@ -36,6 +41,7 @@ export async function POST(req: Request): Promise<any> {
         .replace(/^www\./, '')        // Remove 'www.' if it exists
         .replace(/\/$/, '');          // Remove trailing slash if it exists
 
+    console.log('Chromium executable path:', await chromium.executablePath(process.env.CHROMIUM_PATH));
     const websiteURL = `https://www.${websiteUrl}/sitemap.xml`;
     const browser = await getBrowser();
     const sitemap = await scrapingService(browser).scrapSiteMap(websiteURL)
